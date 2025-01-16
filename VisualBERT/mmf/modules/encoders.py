@@ -18,8 +18,8 @@ from VisualBERT.mmf.utils.file_io import PathManager
 from VisualBERT.mmf.utils.general import get_absolute_path
 from omegaconf import MISSING, OmegaConf
 from torch import nn
-from transformers.configuration_auto import AutoConfig
-from transformers.modeling_auto import AutoModel
+from transformers import AutoConfig
+from transformers import AutoModel
 
 
 class Encoder(nn.Module):

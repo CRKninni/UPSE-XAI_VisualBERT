@@ -12,7 +12,7 @@ from VisualBERT.mmf.models.transformers.base import (
 from VisualBERT.mmf.utils.build import build_encoder
 from omegaconf import OmegaConf
 from torch import Tensor, nn
-from transformers.modeling_bert import BertPooler, BertPredictionHeadTransform
+from transformers.models.bert.modeling_bert import BertPooler, BertPredictionHeadTransform
 
 
 @registry.register_model("mmf_transformer")

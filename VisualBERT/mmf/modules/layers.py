@@ -126,7 +126,7 @@ class ClassifierLayer(nn.Module):
 class BertClassifierHead(nn.Module):
     def __init__(self, in_dim=768, out_dim=2, config=None, *args, **kwargs):
         super().__init__()
-        from transformers.modeling_bert import BertPredictionHeadTransform
+        from transformers.models.bert.modeling_bert import BertPredictionHeadTransform
 
         if config is None:
             from transformers.configuration_bert import BertConfig

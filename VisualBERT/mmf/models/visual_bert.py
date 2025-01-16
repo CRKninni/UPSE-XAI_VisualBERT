@@ -23,7 +23,7 @@ from VisualBERT.mmf.utils.transform import (
 )
 from omegaconf import OmegaConf
 from torch import Tensor, nn
-from transformers.modeling_bert import (
+from transformers.models.bert.modeling_bert import (
     BertConfig,
     BertForPreTraining,
     BertPooler,

@@ -6,7 +6,7 @@ import torch
 from VisualBERT.mmf.common.registry import registry
 from VisualBERT.mmf.common.sample import Sample, SampleList
 from VisualBERT.mmf.datasets.processors.processors import BaseProcessor
-from transformers.tokenization_auto import AutoTokenizer
+from transformers import AutoTokenizer
 
 
 @registry.register_processor("masked_token")

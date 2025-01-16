@@ -15,7 +15,8 @@ from VisualBERT.mmf.modules.layers import AttnPool1d, Identity
 from VisualBERT.mmf.utils.file_io import PathManager
 from VisualBERT.mmf.utils.vocab import Vocab
 from torch import Tensor, nn
-from transformers.modeling_bert import BertEmbeddings
+from transformers.models.bert.modeling_bert import BertEmbeddings
+
 
 
 class TextEmbedding(nn.Module):

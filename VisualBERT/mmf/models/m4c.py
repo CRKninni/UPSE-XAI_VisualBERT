@@ -11,7 +11,7 @@ from VisualBERT.mmf.modules.layers import ClassifierLayer
 from VisualBERT.mmf.utils.build import build_image_encoder
 from omegaconf import OmegaConf
 from torch import nn
-from transformers.modeling_bert import (
+from transformers.models.bert.modeling_bert import (
     BertConfig,
     BertEmbeddings,
     BertEncoder,

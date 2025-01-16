@@ -16,7 +16,7 @@ from VisualBERT.mmf.utils.modeling import get_optimizer_parameters_for_bert
 from omegaconf import OmegaConf
 from torch import Tensor, nn
 from torch.nn import CrossEntropyLoss
-from transformers.modeling_bert import (
+from transformers.models.bert.modeling_bert import (
     ACT2FN,
     BertConfig,
     BertEmbeddings,

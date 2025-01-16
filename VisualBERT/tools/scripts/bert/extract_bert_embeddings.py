@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 import torch
 from tqdm import tqdm
-from transformers.modeling_bert import BertModel
+from transformers.models.bert.modeling_bert import BertModel
 from transformers.tokenization_auto import AutoTokenizer
 
 

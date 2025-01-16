@@ -1675,7 +1675,6 @@ class GeneralizedRCNN(nn.Module):
         cache_dir = kwargs.pop("cache_dir", None)
         from_tf = kwargs.pop("from_tf", False)
         force_download = kwargs.pop("force_download", False)
-        resume_download = kwargs.pop("resume_download", False)
         proxies = kwargs.pop("proxies", None)
         local_files_only = kwargs.pop("local_files_only", False)
         use_cdn = kwargs.pop("use_cdn", True)
@@ -1688,7 +1687,6 @@ class GeneralizedRCNN(nn.Module):
                 config_path,
                 cache_dir=cache_dir,
                 force_download=force_download,
-                resume_download=resume_download,
                 proxies=proxies,
                 local_files_only=local_files_only,
             )
@@ -1729,7 +1727,6 @@ class GeneralizedRCNN(nn.Module):
                     cache_dir=cache_dir,
                     force_download=force_download,
                     proxies=proxies,
-                    resume_download=resume_download,
                     local_files_only=local_files_only,
                 )
                 if resolved_archive_file is None:

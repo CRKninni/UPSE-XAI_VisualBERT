@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 
 import torch
 from torch import Tensor, nn
-from transformers.modeling_bert import (
+from transformers.models.bert.modeling_bert import (
     BertAttention,
     BertEmbeddings,
     BertEncoder,
@@ -15,7 +15,8 @@ from transformers.modeling_bert import (
     BertSelfAttention,
     BertSelfOutput,
 )
-from transformers.modeling_roberta import (
+
+from transformers.models.roberta.modeling_roberta import (
     RobertaAttention,
     RobertaEmbeddings,
     RobertaEncoder,
@@ -23,6 +24,7 @@ from transformers.modeling_roberta import (
     RobertaModel,
     RobertaSelfAttention,
 )
+
 from transformers.modeling_utils import PreTrainedModel
 
 

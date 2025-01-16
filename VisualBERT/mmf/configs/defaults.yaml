@@ -1,6 +1,8 @@
 # Configuration version is useful in migrating older configs to new ones
 config_version: 1.0
 
+learning_rate: 0.0001
+
 # Configuration for training
 training:
     # Name of the trainer class used to define the training/evalution loop
@@ -66,6 +68,8 @@ training:
     clip_gradients: false
     # Mode for clip norm
     clip_norm_mode: all
+
+    learning_rate: 0.0001
 
     early_stop:
         # Whether to use early stopping, (Default: false)

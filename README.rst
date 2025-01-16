@@ -73,7 +73,7 @@ Run the `run.py` script as follows:
 
 .. code-block:: bash
 
-   CUDA_VISIBLE_DEVICES=0 PYTHONPATH=`pwd` python VisualBERT/run.py --method=<method_name> --is-text-pert=<true/false> --is-positive-pert=<true/false> --num-samples=10000 config=projects/visual_bert/configs/vqa2/defaults.yaml model=visual_bert dataset=vqa2 run_type=val checkpoint.resume_zoo=visual_bert.finetuned.vqa2.from_coco_train env.data_dir=/path/to/data_dir training.num_workers=0 training.batch_size=1 training.trainer=mmf_pert training.seed=1234
+   CUDA_VISIBLE_DEVICES=0 PYTHONPATH=`pwd` python VisualBERT/run.py --method=<method_name> --is-text-pert=<true/false> --is-positive-pert=<true/false> --num-samples=10000 config=projects/visual_bert/configs/vqa2/defaults.yaml model=visual_bert dataset=vqa2 run_type=val checkpoint.resume_zoo=visual_bert.finetuned.vqa2.from_coco_train env.data_dir=/home/crk/val2014 training.num_workers=0 training.batch_size=1 training.trainer=mmf_pert training.seed=1234
 
 .. note::
 
@@ -175,3 +175,7 @@ Credits
 * DETR implementation is based on the `offical DETR <https://github.com/facebookresearch/detr>`_ implementation.
 * CLIP implementation is based on the `offical CLIP <https://github.com/openai/CLIP>`_ implementation.
 * The CLIP huggingface spaces demo was made by Paul Hilders, Danilo de Goede, and Piyush Bagad from the University of Amsterdam as part of their `final project <https://github.com/bpiyush/CLIP-grounding>`_.
+
+
+PYTHONPATH=`pwd` python VisualBERT/run.py --method=ours_no_lrp --is-text-pert=true --is-positive-pert=true --num-samples=10000 config=projects/visual_bert/configs/vqa2/defaults.yaml model=visual_bert dataset=vqa2 run_type=val checkpoint.resume_zoo=visual_bert.finetuned.vqa2.from_coco_train env.data_dir=/home/crk/val2014/ training.num_workers=0 training.batch_size=1 training.trainer=mmf_pert training.seed=1234 training.learning_rate=0.0001
+PYTHONPATH=`pwd` python lxmert/lxmert/perturbation.py  --COCO_path /home/crk/val2014/ --method ours_no_lrp --is-text-pert true --is-positive-pert true

@@ -184,7 +184,6 @@ class Config:
 
         cache_dir = kwargs.pop("cache_dir", None)
         force_download = kwargs.pop("force_download", False)
-        resume_download = kwargs.pop("resume_download", False)
         proxies = kwargs.pop("proxies", None)
         local_files_only = kwargs.pop("local_files_only", False)
 
@@ -202,7 +201,6 @@ class Config:
                 cache_dir=cache_dir,
                 force_download=force_download,
                 proxies=proxies,
-                resume_download=resume_download,
                 local_files_only=local_files_only,
             )
             # Load config dict
@@ -295,7 +293,6 @@ def get_from_cache(
     force_download=False,
     proxies=None,
     etag_timeout=10,
-    resume_download=False,
     user_agent=None,
     local_files_only=False,
 ):
@@ -360,22 +357,9 @@ def get_from_cache(
             # Even if returning early like here, the lock will be released.
             return cache_path
 
-        if resume_download:
-            incomplete_path = cache_path + ".incomplete"
 
-            @contextmanager
-            def _resumable_file_manager():
-                with open(incomplete_path, "a+b") as f:
-                    yield f
-
-            temp_file_manager = _resumable_file_manager
-            if os.path.exists(incomplete_path):
-                resume_size = os.stat(incomplete_path).st_size
-            else:
-                resume_size = 0
-        else:
-            temp_file_manager = partial(tempfile.NamedTemporaryFile, dir=cache_dir, delete=False)
-            resume_size = 0
+        temp_file_manager = partial(tempfile.NamedTemporaryFile, dir=cache_dir, delete=False)
+        resume_size = 0
 
         # Download to temporary file, then copy to cache dir once finished.
         # Otherwise you get corrupt cache entries if the download gets interrupted.
@@ -426,7 +410,6 @@ def cached_path(
     cache_dir=None,
     force_download=False,
     proxies=None,
-    resume_download=False,
     user_agent=None,
     extract_compressed_file=False,
     force_extract=False,
@@ -446,7 +429,6 @@ def cached_path(
             cache_dir=cache_dir,
             force_download=force_download,
             proxies=proxies,
-            resume_download=resume_download,
             user_agent=user_agent,
             local_files_only=local_files_only,
         )

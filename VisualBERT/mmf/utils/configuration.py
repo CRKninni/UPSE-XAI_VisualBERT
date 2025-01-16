@@ -6,7 +6,7 @@ import os
 import warnings
 from ast import literal_eval
 
-import demjson
+import demjson3
 import torch
 from VisualBERT.mmf.common.registry import registry
 from VisualBERT.mmf.utils.env import import_user_module
@@ -264,6 +264,9 @@ class Configuration:
         # Update user_config with opts if passed
         self.config_path = opts.config
         if self.config_path is not None:
+            print("*" * 100)
+            print(self.config_path)
+            print("*"*100)
             user_config = load_yaml(self.config_path)
 
         return user_config
@@ -355,7 +358,7 @@ class Configuration:
         if demjson_string is None:
             return OmegaConf.create()
 
-        demjson_dict = demjson.decode(demjson_string)
+        demjson_dict = demjson3.decode(demjson_string)
         return OmegaConf.create(demjson_dict)
 
     def _get_args_config(self, args):
@@ -525,7 +528,6 @@ class Configuration:
 
         # if args["seed"] == -1:
         #     self.config["training"]["seed"] = random.randint(1, 1000000)
-
         if config.learning_rate:
             if "optimizer" in config and "params" in config.optimizer:
                 lr = config.learning_rate

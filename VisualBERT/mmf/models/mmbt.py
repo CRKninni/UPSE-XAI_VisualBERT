@@ -30,7 +30,7 @@ from VisualBERT.mmf.utils.configuration import get_mmf_cache_dir
 from VisualBERT.mmf.utils.modeling import get_optimizer_parameters_for_bert
 from omegaconf import II, DictConfig, OmegaConf
 from torch import Tensor, nn
-from transformers.modeling_bert import BertForPreTraining, BertPredictionHeadTransform
+from transformers.models.bert.modeling_bert import BertForPreTraining, BertPredictionHeadTransform
 
 
 # TODO: Remove after transformers package upgrade to 2.5

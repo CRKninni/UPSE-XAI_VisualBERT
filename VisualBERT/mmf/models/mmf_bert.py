@@ -6,7 +6,7 @@ from VisualBERT.mmf.models.pythia import Pythia
 from VisualBERT.mmf.modules.embeddings import ProjectionEmbedding
 from VisualBERT.mmf.utils.transform import transform_to_batch_sequence
 from torch import nn
-from transformers.modeling_bert import (
+from transformers.models.bert.modeling_bert import (
     BertConfig,
     BertEmbeddings,
     BertForPreTraining,
