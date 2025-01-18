@@ -1,6 +1,11 @@
 import numpy as np
 import torch
 import copy
+from scipy.sparse.linalg import eigs
+import torch.nn.functional as F
+import math
+from pymatting.util.util import row_sum
+from scipy.sparse import diags
 
 def compute_rollout_attention(all_layer_matrices, start_layer=0):
     # adding residual consideration
@@ -52,6 +57,68 @@ def handle_residual(orig_self_attention):
     self_attention = self_attention / self_attention.sum(dim=-1, keepdim=True)
     self_attention += torch.eye(self_attention.shape[-1]).to(self_attention.device)
     return self_attention
+
+def get_diagonal (W):
+    D = row_sum(W)
+    D[D < 1e-12] = 1.0  # Prevent division by zero.
+    D = diags(D)
+    return D
+
+def get_eigs (feats, modality, how_many = None):
+    if feats.size(0) == 1:
+        feats = feats.detach().squeeze()
+
+
+    if modality == "image":
+        n_image_feats = feats.size(0)
+        val = int( math.sqrt(n_image_feats) )
+        if val * val == n_image_feats:
+            feats = F.normalize(feats, p = 2, dim = -1)
+            # feats = feats
+        elif val * val + 1 == n_image_feats:
+            feats = F.normalize(feats, p = 2, dim = -1)[1:]
+            # feats = F[1:]
+
+        else:
+            print(f"Invalid number of features detected: {n_image_feats}")
+
+    else:
+        feats = F.normalize(feats, p = 2, dim = -1)[1:-1]
+        # feats = feats[1:-1]
+
+
+    W_feat = (feats @ feats.T)
+    W_feat = (W_feat * (W_feat > 0))
+    W_feat = W_feat / W_feat.max() 
+
+    W_feat = W_feat.detach().cpu().numpy()
+
+    
+    D = np.array(get_diagonal(W_feat).todense())
+
+    L = D - W_feat
+
+    L_shape = L.shape[0]
+    if how_many >= L_shape - 1: 
+        how_many = L_shape - 2
+
+    try:
+        eigenvalues, eigenvectors = eigs(L, k = how_many, which = 'LM', sigma = -0.5, M = D)
+    except:
+        try:
+            eigenvalues, eigenvectors = eigs(L, k = how_many, which = 'LM', sigma = -0.5)
+        except:
+            eigenvalues, eigenvectors = eigs(L, k = how_many, which = 'LM')
+    eigenvalues, eigenvectors = torch.from_numpy(eigenvalues), torch.from_numpy(eigenvectors.T).float()
+    
+    n_tuple = torch.kthvalue(eigenvalues.real, 2)
+    fev_idx = n_tuple.indices
+    fev = eigenvectors[fev_idx]
+
+    if modality == 'text':
+        fev = torch.cat( ( torch.zeros(1), fev, torch.zeros(1)  ) )
+
+    return fev
 
 class GeneratorOurs:
     def __init__(self, model_usage, save_visualization=False):
@@ -210,7 +277,93 @@ class GeneratorOurs:
         self.R_t_t[0,0] = 0
         return self.R_t_t, self.R_t_i
 
+    def generate_ours1(self, input, index=None, use_lrp=True, normalize_self_attention=True, apply_self_in_rule_10=True, method_name="ours"):
+        self.use_lrp = use_lrp
+        self.normalize_self_attention = normalize_self_attention
+        self.apply_self_in_rule_10 = apply_self_in_rule_10
+        kwargs = {"alpha": 1}
+        output = self.model_usage.forward(input).question_answering_score
+        model = self.model_usage.model
 
+        # initialize relevancy matrices
+        text_tokens = self.model_usage.text_len
+        image_bboxes = self.model_usage.image_boxes_len
+
+        # text self attention matrix
+        self.R_t_t = torch.eye(text_tokens, text_tokens).to(model.device)
+        # image self attention matrix
+        self.R_i_i = torch.eye(image_bboxes, image_bboxes).to(model.device)
+        # impact of images on text
+        self.R_t_i = torch.zeros(text_tokens, image_bboxes).to(model.device)
+        # impact of text on images
+        self.R_i_t = torch.zeros(image_bboxes, text_tokens).to(model.device)
+
+
+        if index is None:
+            index = np.argmax(output.cpu().data.numpy(), axis=-1)
+
+        one_hot = np.zeros((1, output.size()[-1]), dtype=np.float32)
+        one_hot[0, index] = 1
+        one_hot_vector = one_hot
+        one_hot = torch.from_numpy(one_hot).requires_grad_(True)
+        one_hot = torch.sum(one_hot.cuda() * output)
+
+        model.zero_grad()
+        one_hot.backward(retain_graph=True)
+        if self.use_lrp:
+            model.relprop(torch.tensor(one_hot_vector).to(output.device), **kwargs)
+
+        # language self attention
+        blocks = model.lxmert.encoder.layer
+        self.handle_self_attention_lang(blocks)
+
+        # image self attention
+        blocks = model.lxmert.encoder.r_layers
+        self.handle_self_attention_image(blocks)
+
+        # cross attn layers
+        blocks = model.lxmert.encoder.x_layers
+        for i, blk in enumerate(blocks):
+            # in the last cross attention module, only the text cross modal
+            # attention has an impact on the CLS token, since it's the first
+            # token in the language tokens
+            if i == len(blocks) - 1:
+                break
+            # cross attn- first for language then for image
+            R_t_i_addition, R_t_t_addition = self.handle_co_attn_lang(blk)
+            R_i_t_addition, R_i_i_addition = self.handle_co_attn_image(blk)
+
+            self.R_t_i += R_t_i_addition
+            self.R_t_t += R_t_t_addition
+            self.R_i_t += R_i_t_addition
+            self.R_i_i += R_i_i_addition
+
+            # language self attention
+            self.handle_co_attn_self_lang(blk)
+
+            # image self attention
+            self.handle_co_attn_self_image(blk)
+
+
+        # take care of last cross attention layer- only text
+        blk = model.lxmert.encoder.x_layers[-1]
+        # cross attn- first for language then for image
+        R_t_i_addition, R_t_t_addition = self.handle_co_attn_lang(blk)
+        self.R_t_i += R_t_i_addition
+        self.R_t_t += R_t_t_addition
+
+        # language self attention
+        self.handle_co_attn_self_lang(blk)
+
+        # disregard the [CLS] token itself
+        self.R_t_t[0,0] = 0
+        
+        feats = model.lxmert.encoder.visual_feats_list_x[-2]
+        dsm_image = get_eigs(feats, 'image', how_many = 2)
+        feats = model.lxmert.encoder.lang_feats_list_x[-1]
+        dsm_text = get_eigs(feats, 'text', how_many = 2)
+        
+        return self.R_t_t, self.R_t_i, dsm_text, dsm_image
 
 class GeneratorOursAblationNoAggregation:
     def __init__(self, model_usage, save_visualization=False):

@@ -9,6 +9,7 @@ from tqdm import tqdm
 from lxmert.lxmert.src.ExplanationGenerator import GeneratorOurs, GeneratorBaselines, GeneratorOursAblationNoAggregation
 import random
 from lxmert.lxmert.src.param import args
+from sklearn.metrics import auc as auc_score
 
 OBJ_URL = "https://raw.githubusercontent.com/airsplay/py-bottom-up-attention/master/demo/data/genome/1600-400-20/objects_vocab.txt"
 ATTR_URL = "https://raw.githubusercontent.com/airsplay/py-bottom-up-attention/master/demo/data/genome/1600-400-20/attributes_vocab.txt"
@@ -227,7 +228,7 @@ def main(args):
         elif method_name == "ours_with_lrp_no_normalization":
             R_t_t, R_t_i = ours.generate_ours(item, normalize_self_attention=False)
         elif method_name == "ours_no_lrp":
-            R_t_t, R_t_i = ours.generate_ours(item, use_lrp=False)
+            R_t_t, R_t_i, dsm_text, dsm_image = ours.generate_ours1(item, use_lrp=False)
         elif method_name == "ours_no_lrp_no_norm":
             R_t_t, R_t_i = ours.generate_ours(item, use_lrp=False, normalize_self_attention=False)
         elif method_name == "ours_with_lrp":
@@ -239,8 +240,20 @@ def main(args):
         else:
             print("Please enter a valid method name")
             return
-        cam_image = R_t_i[0]
-        cam_text = R_t_t[0]
+        
+        dsm_image = abs(dsm_image.to(R_t_i[0].device))
+        dsm_text = abs(dsm_text.to(R_t_t[0].device))
+
+        dsm_image = (dsm_image - dsm_image.min()) / (dsm_image.max() - dsm_image.min() + 1e-8)
+        R_t_i_norm = (R_t_i[0] - R_t_i[0].min()) / (R_t_i[0].max() - R_t_i[0].min() + 1e-8)
+
+        dsm_text = (dsm_text - dsm_text.min()) / (dsm_text.max() - dsm_text.min() + 1e-8)
+        R_t_t_norm = (R_t_t[0] - R_t_t[0].min()) / (R_t_t[0].max() - R_t_t[0].min() + 1e-8)
+
+        cam_image = R_t_i_norm + dsm_image
+        cam_text = R_t_t_norm + dsm_text
+        # cam_image = R_t_i[0]
+        # cam_text = R_t_t[0]
         cam_image = (cam_image - cam_image.min()) / (cam_image.max() - cam_image.min())
         cam_text = (cam_text - cam_text.min()) / (cam_text.max() - cam_text.min())
         if args.is_text_pert:
@@ -250,5 +263,9 @@ def main(args):
         curr_pert_result = [round(res / (index+1) * 100, 2) for res in curr_pert_result]
         iterator.set_description("Acc: {}".format(curr_pert_result))
 
+    print("Perturbation results: ", curr_pert_result)
+    auc = round(auc_score(model_pert.pert_steps, curr_pert_result), 2)
+    print("AUC: ", auc)
+    
 if __name__ == "__main__":
     main(args)

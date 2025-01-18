@@ -800,6 +800,9 @@ class LxmertEncoder(nn.Module):
             output_attentions=None,
     ):
 
+        self.visual_feats_list_x = []
+        self.lang_feats_list_x = []
+        
         vision_hidden_states = ()
         language_hidden_states = ()
         vision_attentions = () if output_attentions or self.config.output_attentions else None
@@ -834,6 +837,9 @@ class LxmertEncoder(nn.Module):
                 output_attentions=output_attentions,
             )
             lang_feats, visual_feats = x_outputs[:2]
+            self.visual_feats_list_x.append(visual_feats.detach().clone())
+            self.lang_feats_list_x.append(lang_feats.detach().clone())
+            
             vision_hidden_states = vision_hidden_states + (visual_feats,)
             language_hidden_states = language_hidden_states + (lang_feats,)
             if cross_encoder_attentions is not None:
