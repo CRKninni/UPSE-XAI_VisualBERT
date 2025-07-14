@@ -1,1 +1,4 @@
 .idea/*
+log_dir
+.ipynb_checkpoints
+save

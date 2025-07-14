@@ -177,5 +177,5 @@ Credits
 * The CLIP huggingface spaces demo was made by Paul Hilders, Danilo de Goede, and Piyush Bagad from the University of Amsterdam as part of their `final project <https://github.com/bpiyush/CLIP-grounding>`_.
 
 
-PYTHONPATH=`pwd` python VisualBERT/run.py --method=ours_no_lrp --is-text-pert=true --is-positive-pert=true --num-samples=10000 config=projects/visual_bert/configs/vqa2/defaults.yaml model=visual_bert dataset=vqa2 run_type=val checkpoint.resume_zoo=visual_bert.finetuned.vqa2.from_coco_train env.data_dir=/home/crk/val2014/ training.num_workers=0 training.batch_size=1 training.trainer=mmf_pert training.seed=1234 training.learning_rate=0.0001
+CUDA_VISIBLE_DEVICES=0 PYTHONPATH=`pwd` python VisualBERT/run.py --method=ours_no_lrp1 --is-text-pert=true --is-positive-pert=true --num-samples=3000 config=/home/scis_user/ExplanableAi/Transformer-MM-Explainability/VisualBERT/mmf/projects/visual_bert/configs/vqa2/defaults.yaml model=visual_bert dataset=vqa2 run_type=val checkpoint.resume_zoo=visual_bert.finetuned.vqa2.from_coco_train training.num_workers=0 training.batch_size=1 training.trainer=mmf_pert training.seed=1234 training.learning_rate=0.0001
 PYTHONPATH=`pwd` python lxmert/lxmert/perturbation.py  --COCO_path /home/crk/val2014/ --method ours_no_lrp --is-text-pert true --is-positive-pert true
