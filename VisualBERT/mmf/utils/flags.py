@@ -29,6 +29,7 @@ class Flags:
         self.parser.add_argument('--method', type=str,
                             default='ours_no_lrp',
                             choices=["ours_no_lrp",
+                                     "ours_no_lrp1",
                                      "transformer_attribution",
                                     "partial_lrp",
                                     "raw_attn",

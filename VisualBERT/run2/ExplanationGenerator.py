@@ -298,19 +298,17 @@ class SelfAttentionGenerator:
         
         feats = blocks[-1].intermediate_outputs[0]
         dsm = get_eigs(feats,'image',how_many=2)
-        lost = eig_seed(feats,'image',15)
-        pca_0 = get_pca_component(feats,'image',0)
-        pca_1 = get_pca_component(feats,'image',1)
-        grad_cam = get_grad_cam(grads,cams,'image')
-        rollout = get_rollout(cams,'image')
-        grad_cam = grad_cam * 2
-        pca_1 = pca_1 * 0.001
-        dsm = dsm[:cls_per_token_score.shape[1]]
-        lost = lost[:cls_per_token_score.shape[1]]
-        pca_0 = pca_0[:cls_per_token_score.shape[1]]
-        pca_1 = pca_1[:cls_per_token_score.shape[1]]
-        grad_cam = grad_cam[:cls_per_token_score.shape[1]]
-        rollout = rollout[:cls_per_token_score.shape[1]]
+        # lost = eig_seed(feats,'image',15)
+        # pca_0 = get_pca_component(feats,'image',0)
+        # pca_1 = get_pca_component(feats,'image',1)
+        # grad_cam = get_grad_cam(grads,cams,'image')
+        # rollout = get_rollout(cams,'image')
+        # grad_cam = grad_cam * 2
+        # pca_1 = pca_1 * 0.001
+        # dsm = dsm[:len(cls_per_token_score)]
+        # lost = lost[:len(cls_per_token_score)]
+        # pca_0 = pca_0[:len(cls_per_token_score)]
+        # pca_1 = pca_1[:len(cls_per_token_score)]
         
         
         
@@ -319,11 +317,12 @@ class SelfAttentionGenerator:
         x = (x-x.min())/(x.max()-x.min()+1e-8)
         x = x.unsqueeze(0)
         x = abs(x.to(blocks[0].attention.self.get_attn().device))
-    
-        # x[:, cls_index] = 0
+        x[:, cls_index] = 0
         
     
         cls_per_token_score = x
+        print(cls_per_token_score.shape)
+        
         # dsm=dsm[:len(cls_per_token_score)]
         # dsm = abs(dsm.to(blocks[0].attention.self.get_attn().device))
         # cls_per_token_score = cls_per_token_score + dsm
@@ -470,10 +469,7 @@ class SelfAttentionGenerator:
         one_hot = np.zeros((1, output.size()[-1]), dtype=np.float32)
         one_hot[0, index] = 1
         one_hot = torch.from_numpy(one_hot).requires_grad_(True)
-        try:
-            one_hot = torch.sum(one_hot.cuda() * output)
-        except:
-            one_hot = torch.sum(one_hot * output)
+        one_hot = torch.sum(one_hot.cuda() * output)
 
         self.model.zero_grad()
         one_hot.backward(retain_graph=True)

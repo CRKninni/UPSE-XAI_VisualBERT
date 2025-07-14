@@ -12,6 +12,8 @@ from VisualBERT.mmf.common.sample import to_device
 from VisualBERT.mmf.utils.distributed import is_master
 from VisualBERT.mmf.models.transformers.backends import ExplanationGenerator
 from VisualBERT import perturbation_arguments
+import time
+import sklearn.metrics as skm
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +83,7 @@ class TrainerEvaluationLoopMixinPert(ABC):
         num_samples = perturbation_arguments.args.num_samples
         method_expl = {"transformer_attribution": expl.generate_transformer_att,
                        "ours_no_lrp": expl.generate_ours,
+                       "ours_no_lrp1": expl.generate_ours1,
                        "partial_lrp": expl.generate_partial_lrp,
                        "raw_attn": expl.generate_raw_attn,
                        "attn_gradcam": expl.generate_attn_gradcam,
@@ -112,6 +115,7 @@ class TrainerEvaluationLoopMixinPert(ABC):
                     # find top step boxes
                     _, top_bboxes_indices = bbox_scores.topk(k=curr_num_tokens, dim=-1)
                     top_bboxes_indices = top_bboxes_indices.cpu().data.numpy()
+                    
 
                     # remove the top step boxes from the batch info
                     batch['image_feature_0'] = image_features[:, top_bboxes_indices, :]
@@ -122,6 +126,9 @@ class TrainerEvaluationLoopMixinPert(ABC):
                     report = self._forward(batch)
                     step_acc[step_idx] += report["targets"][0,report["scores"].argmax()].item()
 
+                del method_cam
+                torch.cuda.empty_cache()
+                
                 i += 1
                 if i > num_samples:
                     break
@@ -161,9 +168,16 @@ class TrainerEvaluationLoopMixinPert(ABC):
                     report = self._forward(batch)
                     step_acc[step_idx] += report["targets"][0, report["scores"].argmax()].item()
 
+                del method_cam
+                torch.cuda.empty_cache()
+
                 i += 1
                 if i > num_samples:
                     break
         print("pert type {0}".format(pert_type))
         step_acc = [acc / num_samples * 100 for acc in step_acc]
         print(step_acc)
+        auc = skm.auc(steps, step_acc)
+        print("AUC: {0}".format(auc))
+        
+        

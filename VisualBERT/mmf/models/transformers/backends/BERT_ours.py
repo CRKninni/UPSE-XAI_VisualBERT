@@ -479,6 +479,7 @@ class BertLayer(nn.Module):
         self.intermediate = BertIntermediate(config)
         self.output = BertOutput(config)
         self.clone = Clone()
+        self.intermediate_outputs = []
 
     def forward(
             self,
@@ -497,6 +498,8 @@ class BertLayer(nn.Module):
         outputs = self_attention_outputs[1:]  # add self attentions if we output attention weights
 
         ao1, ao2 = self.clone(attention_output, 2)
+        self.intermediate_outputs.append(ao1.detach().clone())
+        
         intermediate_output = self.intermediate(ao1)
         layer_output = self.output(intermediate_output, ao2)
 

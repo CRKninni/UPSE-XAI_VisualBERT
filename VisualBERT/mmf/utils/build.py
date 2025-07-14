@@ -69,6 +69,7 @@ def build_model(
 
     model_name = config.model
     model_class = registry.get_model_class(model_name)
+    print("Model Class", model_class)
 
     if model_class is None:
         raise RuntimeError(f"No model registered for name: {model_name}")

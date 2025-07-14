@@ -314,7 +314,7 @@ class Configuration:
 
     def _build_dataset_config(self, config):
         dataset = config.dataset
-        datasets = config.datasets
+        datasets = ""
 
         if dataset is None and datasets is None:
             raise KeyError("Required argument 'dataset|datasets' not passed")
@@ -369,9 +369,9 @@ class Configuration:
         OmegaConf.clear_resolvers()
         # Device count resolver
         device_count = max(1, torch.cuda.device_count())
-        OmegaConf.register_resolver("device_count", lambda: device_count)
-        OmegaConf.register_resolver("resolve_cache_dir", resolve_cache_dir)
-        OmegaConf.register_resolver("resolve_dir", resolve_dir)
+        OmegaConf.register_new_resolver("device_count", lambda: device_count)
+        OmegaConf.register_new_resolver("resolve_cache_dir", resolve_cache_dir)
+        OmegaConf.register_new_resolver("resolve_dir", resolve_dir)
 
     def _merge_with_dotlist(self, config, opts):
         # TODO: To remove technical debt, a possible solution is to use

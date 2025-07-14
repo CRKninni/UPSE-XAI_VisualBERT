@@ -15,6 +15,8 @@ from VisualBERT.mmf.utils.flags import flags
 from VisualBERT.mmf.utils.general import log_device_names
 from VisualBERT.mmf.utils.logger import setup_logger, setup_very_basic_config
 from VisualBERT import perturbation_arguments
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
 
 
 setup_very_basic_config()
@@ -29,8 +31,8 @@ def main(configuration, init_distributed=False, predict=False):
         torch.cuda.set_device(config.device_id)
         torch.cuda.init()
 
-    if init_distributed:
-        distributed_init(config)
+    # if init_distributed:
+    #     distributed_init(config)
 
     seed = config.training.seed
     config.training.seed = set_seed(seed if seed == -1 else seed + get_rank())
